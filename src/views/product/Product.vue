@@ -77,9 +77,14 @@
                        sortable>
       </el-table-column>
       <el-table-column prop="imgUrl"
-                       label="图片"
+                       label="图片名称"
                        min-width="120"
                        sortable>
+      </el-table-column>
+      <el-table-column label="图片" min-width="90">
+        <template scope="scope">
+          <img alt="暂无商品图片" style="width:90px;height:90px" :src="'api/'+scope.row.imgUrl"/>
+        </template>
       </el-table-column>
       <el-table-column label="操作"
                        min-width="150">
@@ -147,15 +152,30 @@
           <el-input v-model="editForm.pricelist"
                     auto-complete="off"></el-input>
         </el-form-item>
-        <el-form-item label="图片"
-                      prop="imgUrl">
-          <el-input v-model="editForm.imgUrl"
-                    auto-complete="off"></el-input>
-        </el-form-item>
+        <!--<el-form-item label="图片名称"-->
+        <!--prop="imgUrl">-->
+        <!--<el-input v-model="editForm.imgUrl"-->
+        <!--auto-complete="off"></el-input>-->
+        <!--</el-form-item>-->
+        <label class="el-form-item__label" style="width: 80px;">上传图片</label>
+        <el-upload
+          class="upload-demo"
+          :limit=1
+          list-type="picture-card"
+          action="/api/file/upload"
+          :before-upload="beforeAddUpload"
+          :on-success="successEditUpload"
+          :on-remove="removeEditUpload"
+          :file-list="editfileList"
+          ref="upload"
+          style="margin-left:80px;">
+          <i class="el-icon-upload"></i>
+          <div class="el-upload__tip" slot="tip">只能上传jpg/png文件，且不超过1mb！</div>
+        </el-upload>
       </el-form>
       <div slot="footer"
            class="dialog-footer">
-        <el-button @click.native="editFormVisible = false">取消</el-button>
+        <el-button @click.native="editCancel">取消</el-button>
         <el-button type="primary"
                    @click.native="editSubmit"
                    :loading="editLoading">提交
@@ -197,11 +217,25 @@
           <el-input v-model="addForm.pricelist"
                     auto-complete="off"></el-input>
         </el-form-item>
-        <el-form-item label="图片"
-                      prop="imgUrl">
-          <el-input v-model="addForm.imgUrl"
-                    auto-complete="off"></el-input>
-        </el-form-item>
+        <!--<el-form-item label="图片名称"-->
+        <!--prop="imgUrl">-->
+        <!--<el-input v-model="addForm.imgUrl"-->
+        <!--auto-complete="off"></el-input>-->
+        <!--</el-form-item>-->
+        <label class="el-form-item__label" style="width: 120px;">上传图片</label>
+        <el-upload
+          class="upload-demo"
+          :limit=1
+          list-type="picture-card"
+          action="/api/file/upload"
+          :before-upload="beforeAddUpload"
+          :on-success="successAddUpload"
+          :on-remove="removeAddUpload"
+          :file-list="addfileList"
+          style="margin-left:80px;">
+          <i class="el-icon-upload"></i>
+          <div style="padding-left: 40px" class="el-upload__tip" slot="tip">只能上传jpg/png文件，且不超过1mb！</div>
+        </el-upload>
       </el-form>
       <div slot="footer"
            class="dialog-footer">
@@ -250,16 +284,13 @@
           ],
           pricelist: [
             {required: true, message: '请输入商品吊牌价', trigger: 'blur'}
-          ],
-          imgUrl: [
-            {required: true, message: '请选择商品图片', trigger: 'blur'}
           ]
         },
         //编辑界面数据
         editForm: {
           id: 0,
           code: '',
-          name: ''
+          name: '',
         },
 
         addFormVisible: false,//新增界面是否显示
@@ -279,18 +310,17 @@
           ],
           pricelist: [
             {required: true, message: '请输入商品吊牌价', trigger: 'blur'}
-          ],
-          imgUrl: [
-            {required: true, message: '请选择商品图片', trigger: 'blur'}
           ]
         },
         //新增界面数据
         addForm: {
           id: 0,
           code: '',
-          name: ''
-        }
-
+          name: '',
+        },
+        //新增界面上传图片
+        addfileList: [],
+        editfileList: []
       }
     },
     methods: {
@@ -324,13 +354,23 @@
 
       //显示编辑界面
       handleEdit: function (index, row) {
+        this.editfileList = [];
         this.editFormVisible = true;
         this.editForm = Object.assign({}, row);
         console.log(this.editForm);
+        this.editfileList = [{
+          name: row.imgUrl,
+          url: 'api/' + row.imgUrl
+        }]
       },
       //显示新增界面
       handleAdd: function () {
         this.addFormVisible = true;
+      },
+      //编辑取消按钮
+      editCancel:function () {
+        this.editFormVisible = false;
+        this.editfileList=[];
       },
       //编辑提交按钮
       editSubmit: function () {
@@ -341,6 +381,7 @@
               let para = Object.assign({}, this.editForm);
               editProduct(para).then((res) => {
                 this.editLoading = false;
+                this.editfileList=[];
                 if (res.data.code !== 200) {
                   this.$message({
                     message: res.data.msg,
@@ -369,6 +410,9 @@
               let para = Object.assign({}, this.addForm);
               saveProduct(para).then((res) => {
                 this.addLoading = false;
+                console.log(this.addfileList)
+                //清空新增界面显示图片
+                this.addfileList = [];
                 if (res.data.code !== 200) {
                   this.$message({
                     message: res.data.msg,
@@ -446,8 +490,41 @@
         console.log("sels:" + sels);
         this.sels = sels;
       },
-    }
-    ,
+      //上传前触发
+      beforeAddUpload: function (file) {
+        const isJPG = file.type === 'image/jpeg' || file.type === 'image/png';
+        const isLt2M = file.size / 1024 / 1024 < 1;
+
+        if (!isJPG) {
+          this.$message.error('上传头像图片只能是 JPG或PNG 格式!');
+        }
+        if (!isLt2M) {
+          this.$message.error('上传头像图片大小不能超过 1MB!');
+        }
+        console.log(this.addfileList)
+        return isJPG && isLt2M;
+      },
+      //新增上传成功
+      successAddUpload: function (response, file, fileList) {
+        this.addForm.imgUrl = response.msg;
+      },
+      //编辑上传成功
+      successEditUpload: function (response, file, fileList) {
+        this.editForm.imgUrl = response.msg;
+      },
+      //新增移除相片
+      removeAddUpload: function (file, fileList) {
+        console.log(this.addfileList)
+        this.addForm.imgUrl = null;
+        //TO-DO 删除服务器相片
+      },
+      //编辑移除相片
+      removeEditUpload: function (file, fileList) {
+        console.log(this.addfileList)
+        this.editForm.imgUrl = null;
+        //TO-DO 删除服务器相片
+      }
+    },
     mounted() {
       this.getProduct();
     }

@@ -220,12 +220,12 @@
 
       }
       .menu-collapsed {
-        flex: 0 0 60px;
         width: 60px;
+        flex: 0 0 60px;
       }
       .menu-expanded {
-        flex: 0 0 230px;
         width: 230px;
+        flex: 0 0 230px;
       }
       .content-container {
         flex: 1;

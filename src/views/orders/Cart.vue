@@ -5,7 +5,7 @@
             style="padding-bottom: 0px;padding-top: 50px;">
       <el-form :inline="true"
                :model="filters">
-        <el-form-item label="顾客名称:">
+        <el-form-item label="顾客:">
           <el-input v-model="filters.wxCustomerName"
           ></el-input>
         </el-form-item>
@@ -56,12 +56,12 @@
                        sortable>
       </el-table-column>
       <el-table-column prop="qty"
-                       label="数量"
+                       label="数  量"
                        min-width="150"
                        sortable>
       </el-table-column>
       <el-table-column prop="amt"
-                       label="金额"
+                       label="金  额"
                        min-width="120"
                        sortable>
       </el-table-column>
