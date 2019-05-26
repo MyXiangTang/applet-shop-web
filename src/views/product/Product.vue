@@ -18,8 +18,27 @@
           ></el-input>
         </el-form-item>
         <el-form-item label="商品分类:">
-          <el-input v-model="filters.divisionId"
-          ></el-input>
+          <!--<el-input v-model="filters.divisionId"-->
+          <!--&gt;</el-input>-->
+          <template>
+            <el-select
+              v-model="filters.divisionId"
+              clearable
+              filterable
+              remote
+              reserve-keyword
+              placeholder="请输入关键词"
+              :remote-method="searchDivision"
+              :blur="getDivision"
+              :loading="divisionLoading">
+              <el-option
+                v-for="item in divisions"
+                :key="item.id"
+                :label="item.name"
+                :value="item.id">
+              </el-option>
+            </el-select>
+          </template>
         </el-form-item>
         <el-col :span="24" style="padding-left: 40px;padding-top: 10px;">
           <el-form-item>
@@ -69,6 +88,7 @@
       <el-table-column prop="divisionId"
                        label="商品分类"
                        min-width="120"
+                       :formatter="formatDivision"
                        sortable>
       </el-table-column>
       <el-table-column prop="pricelist"
@@ -144,8 +164,27 @@
         </el-form-item>
         <el-form-item label="商品分类"
                       prop="divisionId">
-          <el-input v-model="editForm.divisionId"
-                    auto-complete="off"></el-input>
+          <!--<el-input v-model="editForm.divisionId"-->
+          <!--auto-complete="off"></el-input>-->
+          <template>
+            <el-select
+              v-model="editForm.divisionId"
+              clearable
+              filterable
+              remote
+              reserve-keyword
+              placeholder="请输入关键词"
+              :remote-method="searchDivision"
+              :blur="getDivision"
+              :loading="divisionLoading">
+              <el-option
+                v-for="item in divisions"
+                :key="item.id"
+                :label="item.name"
+                :value="item.id">
+              </el-option>
+            </el-select>
+          </template>
         </el-form-item>
         <el-form-item label="吊牌价"
                       prop="pricelist">
@@ -209,8 +248,27 @@
         </el-form-item>
         <el-form-item label="商品分类"
                       prop="divisionId">
-          <el-input v-model="addForm.divisionId"
-                    auto-complete="off"></el-input>
+          <!--<el-input v-model="addForm.divisionId"-->
+          <!--auto-complete="off"></el-input>-->
+          <template>
+            <el-select
+              v-model="addForm.divisionId"
+              clearable
+              filterable
+              remote
+              reserve-keyword
+              placeholder="请输入关键词"
+              :remote-method="searchDivision"
+              :blur="getDivision"
+              :loading="divisionLoading">
+              <el-option
+                v-for="item in divisions"
+                :key="item.id"
+                :label="item.name"
+                :value="item.id">
+              </el-option>
+            </el-select>
+          </template>
         </el-form-item>
         <el-form-item label="吊牌价"
                       prop="pricelist">
@@ -256,7 +314,8 @@
     editProduct,
     getProductListPage,
     removeProduct,
-    saveProduct
+    saveProduct,
+    getDivisionListPage
   } from "../../utils/AxiosClient"
 
   export default {
@@ -320,7 +379,10 @@
         },
         //新增界面上传图片
         addfileList: [],
-        editfileList: []
+        editfileList: [],
+        divisionLoading: false,
+        origDivisions: [],
+        divisions: [],
       }
     },
     methods: {
@@ -355,22 +417,26 @@
       //显示编辑界面
       handleEdit: function (index, row) {
         this.editfileList = [];
-        this.editFormVisible = true;
-        this.editForm = Object.assign({}, row);
-        console.log(this.editForm);
-        this.editfileList = [{
-          name: row.imgUrl,
-          url: 'api/' + row.imgUrl
-        }]
+        setTimeout(() => {
+          this.editFormVisible = true;
+          this.editForm = Object.assign({}, row);
+          console.log(this.editForm);
+          this.editForm.divisionId = parseInt(row.divisionId);
+          //显示图片
+          this.editfileList = [{
+            name: row.imgUrl,
+            url: 'api/' + row.imgUrl
+          }]
+        }, 200)
       },
       //显示新增界面
       handleAdd: function () {
         this.addFormVisible = true;
       },
       //编辑取消按钮
-      editCancel:function () {
+      editCancel: function () {
         this.editFormVisible = false;
-        this.editfileList=[];
+        this.editfileList = [];
       },
       //编辑提交按钮
       editSubmit: function () {
@@ -381,7 +447,7 @@
               let para = Object.assign({}, this.editForm);
               editProduct(para).then((res) => {
                 this.editLoading = false;
-                this.editfileList=[];
+                this.editfileList = [];
                 if (res.data.code !== 200) {
                   this.$message({
                     message: res.data.msg,
@@ -523,10 +589,59 @@
         console.log(this.addfileList)
         this.editForm.imgUrl = null;
         //TO-DO 删除服务器相片
+      },
+      //动态查询商品分类
+      searchDivision: function (query) {
+        if (query !== '') {
+          this.divisions = [];
+          this.divisionLoading = true;
+          setTimeout(() => {
+            this.divisionLoading = false;
+            for (let foritem of this.origDivisions) {
+              if (foritem.name.toLowerCase().indexOf(query.toLowerCase()) > -1) {
+                this.divisions.push(foritem)
+              }
+            }
+          }, 200)
+        }
+      },
+      //重新获取商品分类
+      getDivision: function () {
+        this.divisions = this.origDivisions;
+      },
+      //初始化商品分类
+      initDivision: function () {
+        let para = {page: 0, pageSize: 100000}
+        getDivisionListPage(para).then((res) => {
+          let {msg, code, content} = res.data;
+          if (code !== 200) {
+            this.$message({
+              message: msg,
+              type: 'error'
+            });
+          } else {
+            this.origDivisions = content.content;
+            this.divisions = content.content;
+          }
+        })
+      },
+      //转列表商品分类显示
+      formatDivision: function (row, column) {
+        if (row.divisionId && row.divisionId != "") {
+          for (let divisions of this.origDivisions) {
+            if (divisions.id == row.divisionId) {
+              return divisions.name;
+            }
+          }
+        } else {
+          return null;
+        }
       }
-    },
+    }
+    ,
     mounted() {
       this.getProduct();
+      this.initDivision();
     }
   }
 

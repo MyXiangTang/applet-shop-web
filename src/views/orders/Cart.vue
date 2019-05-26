@@ -6,12 +6,50 @@
       <el-form :inline="true"
                :model="filters">
         <el-form-item label="顾客:">
-          <el-input v-model="filters.wxCustomerName"
-          ></el-input>
+          <!--<el-input v-model="filters.wxCustomerName"-->
+          <!--&gt;</el-input>-->
+          <template>
+            <el-select
+              v-model="filters.wxCustomerId"
+              clearable
+              filterable
+              remote
+              reserve-keyword
+              placeholder="请输入关键词"
+              :remote-method="searchCustomer"
+              :blur="getCustomer"
+              :loading="selectLoading">
+              <el-option
+                v-for="item in customers"
+                :key="item.id"
+                :label="item.name"
+                :value="item.id">
+              </el-option>
+            </el-select>
+          </template>
         </el-form-item>
         <el-form-item label="商品名称:">
-          <el-input v-model="filters.productName"
-          ></el-input>
+          <!--<el-input v-model="filters.productName"-->
+          <!--&gt;</el-input>-->
+          <template>
+            <el-select
+              v-model="filters.mProductId"
+              clearable
+              filterable
+              remote
+              reserve-keyword
+              placeholder="请输入关键词"
+              :remote-method="searchProduct"
+              :blur="getProduct"
+              :loading="selectLoading">
+              <el-option
+                v-for="item in products"
+                :key="item.id"
+                :label="item.name"
+                :value="item.id">
+              </el-option>
+            </el-select>
+          </template>
         </el-form-item>
         <el-form-item label="数量:">
           <el-input v-model="filters.qty"
@@ -83,7 +121,9 @@
 
 <script>
   import {
-    getCartListPage
+    getCartListPage,
+    getCustomerListPage,
+    getProductListPage
   } from "../../utils/AxiosClient"
 
   export default {
@@ -94,7 +134,12 @@
         total: 0,
         page: 1,
         pageSize: 20,
-        listLoading: false
+        listLoading: false,
+        customers:[],
+        origCustomers:[],
+        products:[],
+        origProducts:[],
+        selectLoading:false,
       }
     },
     methods: {
@@ -124,11 +169,83 @@
             }
           }
         );
+      },
+      //动态查询顾客
+      searchCustomer:function (query) {
+        if (query !== '') {
+          this.customers = [];
+          this.selectLoading = true;
+          setTimeout(() => {
+            this.selectLoading = false;
+            for (let foritem of this.origCustomers) {
+              if (foritem.name.toLowerCase().indexOf(query.toLowerCase()) > -1) {
+                this.customers.push(foritem)
+              }
+            }
+          }, 200)
+        }
+      },
+      //重新获取顾客
+      getCustomer:function () {
+        this.customers = this.origCustomers;
+      },
+      //初始化顾客
+      initCustomer: function () {
+        let para = {page: 0, pageSize: 100000}
+        getCustomerListPage(para).then((res) => {
+          let {msg, code, content} = res.data;
+          if (code !== 200) {
+            this.$message({
+              message: msg,
+              type: 'error'
+            });
+          } else {
+            this.origCustomers = content.content;
+            this.customers = content.content;
+          }
+        })
+      },
+      //动态查询商品档案
+      searchProduct:function (query) {
+        if (query !== '') {
+          this.products = [];
+          this.selectLoading = true;
+          setTimeout(() => {
+            this.selectLoading = false;
+            for (let foritem of this.origProducts) {
+              if (foritem.name.toLowerCase().indexOf(query.toLowerCase()) > -1) {
+                this.products.push(foritem)
+              }
+            }
+          }, 200)
+        }
+      },
+      //重新获取商品档案
+      getProduct:function () {
+        this.products = this.origProducts;
+      },
+      //初始化商品档案
+      initProduct: function () {
+        let para = {page: 0, pageSize: 100000}
+        getProductListPage(para).then((res) => {
+          let {msg, code, content} = res.data;
+          if (code !== 200) {
+            this.$message({
+              message: msg,
+              type: 'error'
+            });
+          } else {
+            this.origProducts = content.content;
+            this.products = content.content;
+          }
+        })
       }
     }
     ,
     mounted() {
       this.getCart();
+      this.initCustomer();
+      this.initProduct();
     }
   }
 

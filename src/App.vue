@@ -61,4 +61,10 @@ export default {
   .fade-leave-active {
     opacity: 0;
   }
+  .el-input{
+    width:160px;
+  }
+  .el-form-item{
+    padding-left: 10px;
+  }
 </style>

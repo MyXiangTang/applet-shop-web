@@ -259,7 +259,7 @@
         users: [],
         total: 0,
         page: 1,
-        pageSize: 20,
+        pageSize: 2,
         listLoading: false,
         sels: [],//列表选中列
 
