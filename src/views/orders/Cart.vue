@@ -75,7 +75,6 @@
               :header-cell-style="{background:'#eef1f6',color:'#606266'}"
               highlight-current-row
               v-loading="listLoading"
-              @selection-change="selsChange"
               style="width: 100%;">
       <el-table-column type="selection"
                        width="30">
@@ -135,11 +134,11 @@
         page: 1,
         pageSize: 20,
         listLoading: false,
-        customers:[],
-        origCustomers:[],
-        products:[],
-        origProducts:[],
-        selectLoading:false,
+        customers: [],
+        origCustomers: [],
+        products: [],
+        origProducts: [],
+        selectLoading: false,
       }
     },
     methods: {
@@ -148,7 +147,7 @@
         this.page = val;
         this.getCart();
       },
-      //获取用户列表
+      //获取购物车列表
       getCart() {
         let para = this.filters;
         para.page = (this.page - 1) * this.pageSize;
@@ -171,7 +170,7 @@
         );
       },
       //动态查询顾客
-      searchCustomer:function (query) {
+      searchCustomer: function (query) {
         if (query !== '') {
           this.customers = [];
           this.selectLoading = true;
@@ -186,7 +185,7 @@
         }
       },
       //重新获取顾客
-      getCustomer:function () {
+      getCustomer: function () {
         this.customers = this.origCustomers;
       },
       //初始化顾客
@@ -206,7 +205,7 @@
         })
       },
       //动态查询商品档案
-      searchProduct:function (query) {
+      searchProduct: function (query) {
         if (query !== '') {
           this.products = [];
           this.selectLoading = true;
@@ -221,7 +220,7 @@
         }
       },
       //重新获取商品档案
-      getProduct:function () {
+      getProduct: function () {
         this.products = this.origProducts;
       },
       //初始化商品档案

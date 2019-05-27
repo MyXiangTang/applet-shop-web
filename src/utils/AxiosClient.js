@@ -85,7 +85,12 @@ export const getCartListPage = params => {
   return axios.post('/cart/listpage', params);
 };
 //////////////////////////////////////////顾客信息////////////////////////////////////////////////////////
-//获取购物车列表
+//获取顾客信息列表
 export const getCustomerListPage = params => {
   return axios.post('/customer/listpage', params);
+};
+//////////////////////////////////////////销售单信息////////////////////////////////////////////////////////
+//获取销售单列表
+export const getSaleListPage = params => {
+  return axios.post('/sale/listpage', params);
 };

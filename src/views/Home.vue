@@ -91,7 +91,7 @@
         sysName: '管理后台',
         collapsed: false,
         sysUserName: 'Tom',
-        sysUserAvatar: 'http://localhost:8090/images/user.png',
+        sysUserAvatar: 'http://localhost:8090/images/images/admin.png',
       }
     },
     methods: {
@@ -123,7 +123,7 @@
       if (user) {
         user = JSON.parse(user);
         this.sysUserName = user.name || '';
-        this.sysUserAvatar = user.url || '';
+        // this.sysUserAvatar = user.url || '';
       }
 
     }
