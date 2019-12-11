@@ -1,0 +1,8 @@
+<service>
+  <id>crm-service</id>
+  <name>crm-service</name>
+  <description>CRM API Service</description>
+  <executable>java</executable>
+  <arguments>-Xms128m -Xmx512m -jar "crm-service.jar" --spring.profiles.active=test</arguments>
+  <logmode>rotate</logmode>
+</service>
